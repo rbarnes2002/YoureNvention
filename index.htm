@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your eNvention</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        header img {
+            height: 50px;
+            margin-right: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+ 	
+	#search-bar {
+            margin: 40px 0;
+            text-align: center; /* Centers the search bar horizontally */
+        }
+
+        #search-bar input {
+            width: 80%; /* Makes the bar wider */
+            max-width: 600px; /* Sets a max width for larger screens */
+            padding: 20px; /* Increases padding for height */
+            font-size: 20px; /* Larger font size */
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        #product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+
+        .product-card h2 {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .product-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .product-card button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .product-card button:hover {
+            background-color: #0056b3;
+        }
+
+	#favorites-section {
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #favorites-section h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        #favorites-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .favorite-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <img src="Logo.png" alt="Logo">
+        <h1>Your eNvention</h1>
+    </header>
+     <main>
+         <div id="search-bar">
+            <input type="text" id="search" placeholder="Search for products..." oninput="searchProducts()"/>
+        </div>
+        <div id="product-list">Loading products...</div>
+
+	<button onclick="window.location.href='login.html';" style="position: absolute; top: 20px; right: 20px;">Login</button>
+
+	<div id="favorites-section">
+            <h2>Favorites List</h2>
+            <div id="favorites-list">No favorites added yet.</div>
+        </div>
+    </main>
+
+    <script>
+const apiUrl = "http://3.139.104.172:3000";
+        let products = [];
+
+	fetch(`${apiUrl}/products`)
+    	.then(response => response.json())
+    	.then(data => {
+       	 	products = data;
+        	console.log(products); // Check if products are fetched correctly
+        	renderProducts(products);
+        	renderFavorites();
+    })
+    	.catch(error => {
+        	console.error('Error fetching products:', error);
+        	document.getElementById('product-list').innerText = 'Failed to load products.';
+    });
+
+
+        // Render products to the DOM
+        function renderProducts(productArray) {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            productArray.forEach(product => {
+                const item = document.createElement('div');
+                item.classList.add('product-card');
+
+                // Create product image
+                const img = document.createElement('img');
+                img.src = product.image;
+                img.alt = product.pname;
+
+                // Create product title
+                const title = document.createElement('h2');
+                title.innerText = product.pname;
+		
+		// Create link
+                const link = document.createElement('a');
+                link.href = product.link;
+		link.innerText = 'View Product';
+		link.target = '_blank';
+
+                // Create product price
+                const price = document.createElement('p');
+                price.innerText = `$${product.price}`;
+
+                // Create "Favorite" button
+                const button = document.createElement('button');
+                button.innerText = 'Favorite';
+                button.onclick = () => {
+                    toggleFavorite(product);
+                };
+
+                // Append elements to product card
+                item.appendChild(img);
+                item.appendChild(title);
+		item.appendChild(link);
+                item.appendChild(price);
+                item.appendChild(button);
+
+                // Append product card to product list
+                productList.appendChild(item);
+            });
+        }
+
+        // Favorites functionality
+        function toggleFavorite(product) {
+    	const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    
+    	// Check if the product is already in favorites
+    	const exists = favorites.some(fav => fav.id === product.id);
+
+    	if (exists) {
+        	// If product is already a favorite, remove it
+        	const updatedFavorites = favorites.filter(fav => fav.id !== product.id);
+        	localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+        	alert(`${product.pname} removed from favorites.`);
+    	} else {
+        	// Otherwise, add it to favorites
+        	favorites.push(product);
+        	localStorage.setItem('favorites', JSON.stringify(favorites));
+       		alert(`${product.pname} added to favorites.`);
+    }
+
+    // Re-render the favorites section
+    renderFavorites();
+}
+
+
+        function renderFavorites() {
+    	const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    	const favoritesList = document.getElementById('favorites-list');
+    	favoritesList.innerHTML = '';
+
+    	if (favorites.length === 0) {
+        favoritesList.innerText = 'No favorites added yet.';
+        return;
+    }
+
+   	 favorites.forEach(fav => {
+        const item = document.createElement('div');
+        item.classList.add('favorite-item');
+        item.innerText = `${fav.pname} - $${fav.price}`;
+        favoritesList.appendChild(item);
+    });
+}
+
+
+        // Add search functionality
+        document.getElementById('search').addEventListener('input', (event) => {
+    		const query = event.target.value.toLowerCase();
+    		console.log('Search query:', query);
+    		const filteredProducts = products.filter(product => 
+        	product.pname.toLowerCase().includes(query)
+    		);
+    	console.log('Filtered Products:', filteredProducts);
+    	renderProducts(filteredProducts);
+	});
+    </script>
+<footer>
+    <img src="placeholder.png" alt="Footer Image" id="footer-image">
+</footer>
+</body>
+</html>

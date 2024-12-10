@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form id="login-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Login</button>
+    </form>
+    <p id="error-message" style="color: red;"></p>
+
+    <script>
+        const apiUrl = "http://3.139.104.172:3000";
+
+        document.getElementById('login-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission from reloading the page
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            fetch(`${apiUrl}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Successful login: redirect to index.html
+                        window.location.href = 'index.html';
+                    } else {
+                        // Failed login: show error message
+                        return response.text().then(error => {
+                            document.getElementById('error-message').innerText = error;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during login:', error);
+                    document.getElementById('error-message').innerText = 'An unexpected error occurred.';
+                });
+        });
+    </script>
+</body>
+</html>
